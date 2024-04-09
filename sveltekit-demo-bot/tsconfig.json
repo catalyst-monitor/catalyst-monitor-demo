@@ -1,0 +1,19 @@
+{
+    "compilerOptions": {
+        "target": "es2019",
+        "strict": true,
+        "strictNullChecks": true,
+        "esModuleInterop": true,
+        "moduleResolution": "nodenext",
+        "allowJs": true,
+        "module": "nodenext",
+        "declaration": true,
+        "outDir": "build"
+    },
+    "include": [
+        "src"
+    ],
+    "exclude": [
+        "./packages/*/node_modules"
+    ]
+}
