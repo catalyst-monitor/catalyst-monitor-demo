@@ -1,6 +1,6 @@
 FROM node:18-bookworm
 
-RUN apt-get update && apt-get install -y wget
+RUN apt-get update && apt-get install -y wget procps
 
 # https://support.mozilla.org/en-US/kb/install-firefox-linux#w_install-firefox-deb-package-for-debian-based-distributions
 RUN install -d -m 0755 /etc/apt/keyrings && \

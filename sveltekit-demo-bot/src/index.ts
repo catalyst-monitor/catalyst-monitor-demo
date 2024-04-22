@@ -1,6 +1,10 @@
 import { Browser, Builder, By, WebDriver } from 'selenium-webdriver'
+import { exec } from 'node:child_process'
+import util from 'node:util'
 import Firefox from 'selenium-webdriver/firefox'
 import process from 'node:process'
+
+const execPromise = util.promisify(exec)
 
 const baseUrl = process.env.CATALYST_SVELTEKIT_DEMO_BASE_URL
 
@@ -38,6 +42,8 @@ async function main() {
             'general.useragent.override',
             'Catalyst-Sveltekit-Demo-Bot'
           )
+          .setPreference('app.update.auto', false)
+          .setPreference('app.update.enabled', false)
           .addArguments('--headless')
       )
       .build()
@@ -56,6 +62,22 @@ async function main() {
       runCount = 0
     }
     runCount++
+
+    // Manually kill all Firefox processes, as they can stay alive and cause memory leaks.
+    try {
+      await execPromise('pkill firefox')
+    } catch (e) {
+      if (
+        e != null &&
+        typeof e == 'object' &&
+        'code' in e &&
+        typeof e.code == 'number' &&
+        e.code > 1
+      ) {
+        console.log('Could not kill firefox', e)
+        throw e
+      }
+    }
 
     const timeToWait = 15000 - (new Date().getTime() - start.getTime())
     if (timeToWait > 0) {
