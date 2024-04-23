@@ -13,6 +13,6 @@ primary_region = 'sjc'
   CATALYST_SVELTEKIT_DEMO_BASE_URL = 'https://catalyst-sveltekit-example.vercel.app/'
 
 [[vm]]
-  memory = '768mb'
+  memory = '1024mb'
   cpu_kind = 'shared'
   cpus = 1
