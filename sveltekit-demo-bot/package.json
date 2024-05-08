@@ -20,7 +20,7 @@
     "prettier": "^3.0.3",
     "typescript": "^5.2.2"
   },
-  "packageManager": "yarn@4.1.1",
+  "packageManager": "yarn@4.2.1",
   "prettier": {
     "trailingComma": "es5",
     "tabWidth": 2,

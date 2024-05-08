@@ -10,7 +10,7 @@ primary_region = 'sjc'
   image = '7b27e378'
 
 [env]
-  CATALYST_SVELTEKIT_DEMO_BASE_URL = 'https://catalyst-sveltekit-example.vercel.app/'
+  CATALYST_SVELTEKIT_DEMO_BASE_URL = 'https://catalyst-sveltekit-example.fly.dev'
 
 [[vm]]
   memory = '1024mb'

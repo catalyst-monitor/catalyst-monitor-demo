@@ -1,14 +1,17 @@
 import { Browser, Builder, By, WebDriver } from 'selenium-webdriver'
-import { exec } from 'node:child_process'
-import util from 'node:util'
 import Firefox from 'selenium-webdriver/firefox'
 import process from 'node:process'
-
-const execPromise = util.promisify(exec)
 
 const baseUrl = process.env.CATALYST_SVELTEKIT_DEMO_BASE_URL
 
 main()
+
+const creds = [
+  { userName: 'rowan@work.com', password: 'pass1' },
+  { userName: 'casey@work.com', password: 'pass1' },
+  { userName: 'ali@work.com', password: 'pass1' },
+  { userName: 'parker@work.com', password: 'pass1' },
+]
 
 async function main() {
   if (baseUrl == null) {
@@ -47,37 +50,23 @@ async function main() {
           .addArguments('--headless')
       )
       .build()
-    await driver.manage().setTimeouts({ implicit: 2000 })
+
+    await driver.manage().setTimeouts({ implicit: 5000 })
 
     try {
       await driver.manage().deleteAllCookies()
+      await login(baseUrl, driver, creds[runCount % creds.length])
       await handleShortLink(baseUrl, driver)
-      await handleTodo(baseUrl, driver)
-      await driver.quit()
+      await handleTodo(baseUrl, driver, runCount)
     } catch (e) {
       console.error('ERROR: ', e)
     }
+    await driver.quit()
     if (runCount > 100) {
       console.log('100 runs.')
       runCount = 0
     }
     runCount++
-
-    // Manually kill all Firefox processes, as they can stay alive and cause memory leaks.
-    try {
-      await execPromise('pkill firefox')
-    } catch (e) {
-      if (
-        e != null &&
-        typeof e == 'object' &&
-        'code' in e &&
-        typeof e.code == 'number' &&
-        e.code > 1
-      ) {
-        console.log('Could not kill firefox', e)
-        throw e
-      }
-    }
 
     const timeToWait = 15000 - (new Date().getTime() - start.getTime())
     if (timeToWait > 0) {
@@ -86,29 +75,43 @@ async function main() {
   }
 }
 
+async function login(
+  url: string,
+  driver: WebDriver,
+  creds: { userName: string; password: string }
+) {
+  await driver.get(url)
+
+  await driver.findElement(By.name('userName')).sendKeys(creds.userName)
+
+  await driver.findElement(By.name('password')).sendKeys(creds.password)
+
+  await driver.findElement(By.className('loginBtn')).click()
+
+  await driver.findElement(By.className('logoutBtn'))
+}
+
 async function handleShortLink(url: string, driver: WebDriver) {
   await driver.get(url)
+  await driver.findElement(By.className('logoutBtn'))
+
   await driver.findElement(By.linkText('Link shortener')).click()
 
   // Create a short link.
-  const demoShortLinkName = `${Math.round(Math.random() * 100)}`
+  const demoShortLinkName = `${Math.round(Math.random() * 1000000)}`
   await driver
     .findElement(By.className('fullUrlInput'))
     .sendKeys('https://www.catalystmonitor.com')
   await driver
     .findElement(By.name('shortLink'))
     .sendKeys(`demo-${demoShortLinkName}`)
-  await driver
-    .findElement(By.name('password'))
-    .sendKeys(`pass-${demoShortLinkName}`)
   await driver.findElement(By.css('.buttonRow button')).click()
 
   // Test the link
-  await driver
-    .findElement(By.linkText(`/shortener/demo-${demoShortLinkName}`))
-    .click()
+  await driver.findElement(By.className('tryLink')).click()
+  await driver.sleep(1000)
 
-  // Test changing, bad password
+  // Test changing
   await driver.get(`${url}/shortener`)
   await driver
     .findElement(By.className('fullUrlInput'))
@@ -116,19 +119,16 @@ async function handleShortLink(url: string, driver: WebDriver) {
   await driver
     .findElement(By.name('shortLink'))
     .sendKeys(`demo-${demoShortLinkName}`)
-  await driver.findElement(By.name('password')).sendKeys('badpass')
   await driver.findElement(By.css('.buttonRow button')).click()
+
+  await driver.findElement(By.className('delete')).click()
 }
 
-async function handleTodo(url: string, driver: WebDriver) {
+async function handleTodo(url: string, driver: WebDriver, runCount: number) {
   await driver.get(url)
+  await driver.findElement(By.className('logoutBtn'))
+
   await driver.findElement(By.linkText('To do list')).click()
-
-  await driver.findElement(By.css('.createRow button')).click()
-
-  // const password = await driver
-  //   .findElement(By.className('passwordInput'))
-  //  .getText()
 
   const todoInputEl = await driver
     .findElement(By.className('todoInputRow'))
@@ -140,11 +140,7 @@ async function handleTodo(url: string, driver: WebDriver) {
 
   await driver.findElement(By.css('.todo input[type="checkbox"]')).click()
 
-  await driver.findElement(By.css('.todo button')).click()
-
-  await driver.get(`${url}/todo`)
-
-  await driver.findElement(By.css('.restoreRow input')).sendKeys('badPass')
-
-  await driver.findElement(By.css('.restoreRow button')).click()
+  if (runCount % 5 == 1) {
+    await driver.findElement(By.css('.todo button')).click()
+  }
 }
